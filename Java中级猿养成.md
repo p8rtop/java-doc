@@ -233,13 +233,156 @@ sudo docker run hello-world
 
 
 
-今天就到这里吧，谢谢观看。
+## 1.5 开发环境-Docker安装Redis并设置密码
+
+这一期我给屏幕设置成1K屏，这样清楚点
+
+话不多说，直接开始
+
+```
+# 拉取默认最新的Redis
+docker pull redis
+
+# 运行并设置密码
+docker run -itd --name redis -p 6379:6379 redis --requirepass 123456
+
+```
+
+完事了，装完了，连接工具我用的是 Another Redis Desktop Manager
+
+https://gitee.com/qishibo/AnotherRedisDesktopManager/releases
+
+免费的连接工具，挺好用的。
 
 
 
+## 1.6-开发环境-Docker安装MySQL并挂载配置
 
 
 
+https://www.cnblogs.com/jiangcong/p/15848718.html
+
+```
+# 拉取mysql 5.7镜像
+docker pull mysql:5.7
+
+# 创建Mysql数据挂载宿主机文件夹
+mkdir -p /opt/mysql/conf
+mkdir -p /opt/mysql/data
+
+# 创建并启动mysql容器 --restart=always（自动启动，我不喜欢它自动启动，我这里去掉）
+docker run  -d \
+-v /opt/mysql/conf:/etc/mysql/mysql.conf.d -v /opt/mysql/data:/var/lib/mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 --name mysql5.7 mysql:5.7
+
+# 查看运行中容器，复制CONTAINER ID
+docekr ps
+
+# 登录容器
+docker exec -it 96f77fc7f58e /bin/bash
+
+# 容器内登录mysql，输入密码 123456
+mysql -P 3306 -u root -p
+
+# 配置数据库远程访问
+use mysql;
+ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
+flush privileges;
+# 退出mysql
+exit;
+
+# 退出容器，回到宿主机
+exit
+
+# 配置文件（此时在宿主机进行配置）
+vi /opt/mysql/conf/my.cnf
+
+# 保存一下配置文件，重启一下mysql
+docker restart mysql5.7
+
+# dbeaver测试连接正常，完活（免费开源的工具，挺好用的）
+https://dbeaver.io/  （官网）
+https://dbeaver.io/download/ （DBeaver Community 社区版下载）
+
+```
+
+
+
+配置文件
+
+```
+[mysqld]
+port=3306
+datadir=/var/lib/mysql
+socket=/var/run/mysqld/mysqld.sock
+pid-file=/var/run/mysqld/mysqld.pid
+symbolic-links=0
+innodb_buffer_pool_dump_pct = 40
+innodb_page_cleaners = 4
+innodb_undo_log_truncate = 1
+innodb_max_undo_log_size = 1G
+innodb_purge_rseg_truncate_frequency = 128
+#log-bin=mysql-bin
+binlog-ignore-db=mysql
+#autocommit = 1
+character_set_server=utf8mb4
+max_connections = 1500
+max_connect_errors = 1200
+transaction_isolation = READ-COMMITTED
+explicit_defaults_for_timestamp = 1
+join_buffer_size = 134217728
+tmp_table_size = 67108864
+max_allowed_packet = 1073741824
+sql_mode = "STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER"
+interactive_timeout = 1800
+wait_timeout = 1800
+read_buffer_size = 16777216
+read_rnd_buffer_size = 33554432
+sort_buffer_size = 33554432
+lower_case_table_names = 1
+slow_query_log = OFF
+#slow_query_log_file = slow.log
+#log_queries_not_using_indexes = 1
+#log_slow_admin_statements = 1
+#log_slow_slave_statements = 1
+#log_bin_trust_function_creators = 1
+#log_throttle_queries_not_using_indexes = 10
+#expire_logs_days = 7
+#long_query_time = 2
+min_examined_row_limit = 100
+innodb_page_size = 16K
+innodb_buffer_pool_size = 20G
+innodb_buffer_pool_instances = 6
+innodb_buffer_pool_load_at_startup = 1
+innodb_buffer_pool_dump_at_shutdown = 1
+innodb_lru_scan_depth = 2000
+innodb_lock_wait_timeout = 1
+innodb_io_capacity = 400
+innodb_io_capacity_max = 800
+innodb_file_format = Barracuda
+innodb_file_format_max = Barracuda
+innodb_undo_logs = 128
+innodb_undo_log_truncate = 1
+innodb_max_undo_log_size = 4G
+#innodb_undo_tablespaces = 3
+innodb_flush_neighbors = 1
+innodb_log_file_size = 4G
+innodb_log_buffer_size = 32M
+innodb_purge_threads = 4
+innodb_large_prefix = 1
+innodb_thread_concurrency = 64
+innodb_print_all_deadlocks = 1
+innodb_flush_log_at_trx_commit=2
+sync_binlog=200
+innodb_write_io_threads = 16
+innodb_read_io_threads = 16
+innodb_buffer_pool_dump_pct = 40
+innodb_page_cleaners = 4
+innodb_purge_rseg_truncate_frequency = 128
+interactive_timeout = 10
+[client]
+port=3306
+#socket=/iotp/mysql/mysql.sock
+```
 
 
 
